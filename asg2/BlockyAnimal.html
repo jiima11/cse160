@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Blocky Animal</title>
+  </head>
+
+  <body onload="main()">
+    <canvas id="webgl" width="600" height="600">
+    Please use a browser that supports "canvas"
+    </canvas>
+    <p id="numdot"> XXX </p>
+
+
+    <p>
+        Camera Angle <input type = "range" min = "0" max = "360" value = "20" class = "slider" id = "angleSlide">
+    </p> 
+
+    <p>
+        Animate Everything: 
+        <button type = "button" id = "animationOnButton5">ON</button>
+        <button type = "button" id = "animationOffButton5">OFF</button>
+    </p>
+
+    <p>
+        Left Arm <input type ="range" min = "-5" max = "10" value = "0" class = "slider" id = "leftArm">
+    </p>
+
+    <p>
+        Animation: 
+        <button type = "button" id = "animationOnButton1">ON</button>
+        <button type = "button" id = "animationOffButton1">OFF</button>
+    </p>
+
+    <p>
+        Right Arm <input type = "range" min = "-10" max = "5" value = "0" class = "slider" id = "rightArm">
+    </p> 
+
+    <p>
+        Animation: 
+        <button type = "button" id = "animationOnButton2">ON</button>
+        <button type = "button" id = "animationOffButton2">OFF</button>
+    </p>
+
+    <p>
+        Left Leg <input type = "range" min = "-10" max = "10" value = "0" class = "slider" id = "leftLeg">
+    </p>
+
+    <p>
+        Animation: 
+        <button type = "button" id = "animationOnButton3">ON</button>
+        <button type = "button" id = "animationOffButton3">OFF</button>
+    </p>
+
+    <p>
+        Left Feet <input type = "range" min = "-5" max = "3" value = "0" class = "slider" id = "leftFeet">
+    </p>
+
+    <p>
+        Right Leg <input type = "range" min= "-10" max = "10" value= "0" class = "slider" id = "rightLeg">
+    </p>
+
+    <p>
+        Animation: 
+        <button type = "button" id = "animationOnButton4">ON</button>
+        <button type = "button" id = "animationOffButton4">OFF</button>
+    </p>
+
+    <p>
+        Right Feet <input type = "range" min = "-5" max = "3" value = "0" class = "slider" id = "rightFeet">
+    </p>
+
+    <script src="lib/webgl-utils.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/cuon-utils.js"></script>
+    <script src="lib/cuon-matrix.js"></script>
+    <script src="Points.js"></script>
+    <script src="Triangle.js"></script>
+    <script src="Circle.js"></script>
+    <script src="Cube.js"></script>
+    <script src="BlockyAnimal.js"></script>
+  </body>
+</html>
