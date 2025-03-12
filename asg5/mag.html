@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>FEAR MAGNETO</title>
+    <style>
+      body { margin: 0; }
+      canvas { display: block; }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://threejs.org/build/three.module.js",
+          "three/addons/": "https://threejs.org/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from 'three';
+      import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+      import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; // Import OrbitControls
+
+      function main() {
+        const canvas = document.querySelector('#c');
+        const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+        renderer.setSize(1000, 1000, false);
+
+        const fov = 100;
+        const aspect = 2;
+        const near = 0.1;
+        const far = 5;
+        const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+        camera.position.z = 3;
+
+        const scene = new THREE.Scene();
+        const objLoader = new OBJLoader();
+
+        {
+          const mtlLoader = new MTLLoader();
+          mtlLoader.load('person.mtl', (mtl) => {
+            mtl.preload();
+            for (const material of Object.values(mtl.materials)) {
+              material.side = THREE.DoubleSide;
+            }
+            objLoader.setMaterials(mtl);
+            objLoader.load('person.obj', (root) => {
+              scene.add(root);
+            });
+          });
+        }
+
+        const boxWidth = 1;
+        const boxHeight = 1;
+        const boxDepth = 1;
+        const cubeGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+        const sphereGeometry = new THREE.SphereGeometry(1, 32, 16);
+        const TorusGeometry = new THREE.TorusGeometry(0.5, 0.5, 16, 100);
+
+        const loader = new THREE.TextureLoader();
+        const bgTexture = loader.load('./magneto.png');
+        bgTexture.colorSpace = THREE.SRGBColorSpace;
+        scene.background = bgTexture;
+
+        const texture = loader.load('./metal.jpg');
+        texture.colorSpace = THREE.SRGBColorSpace;
+
+        const material = new THREE.MeshPhongMaterial({
+          map: texture
+        });
+
+        const color = 0xFFFFFF;
+        const intensity = 3;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(-1, 2, 4);
+        scene.add(light);
+
+        const ambColor = 0xFF0000;
+        const ambIntensity = 1;
+        const ambLight = new THREE.AmbientLight(ambColor, ambIntensity);
+        scene.add(ambLight);
+
+        const pointColor = 0x0000FF;
+        const pointIntensity = 150;
+        const pointLight = new THREE.PointLight(pointColor, pointIntensity);
+        pointLight.position.set(-4, 0, 3);
+        scene.add(pointLight);
+
+        renderer.render(scene, camera);
+
+        const cubes = [];
+
+        makeTexturedInstance(sphereGeometry, material, -3, 1.5);
+        makeTexturedInstance(cubeGeometry, material, 0, -1);
+        makeTexturedInstance(TorusGeometry, material, 3, 1.5);
+
+        for (let i = 0; i < 20; i++) {
+          const size = Math.random() * 0.5 + 0.2;
+          const x = Math.random() * 6 - 3;
+          const y = Math.random() * 4 - 2; 
+          const z = Math.random() * 4 - 2; 
+
+          const geometryType = Math.floor(Math.random() * 3);
+          let geometry;
+          if (geometryType === 0) {
+            geometry = new THREE.BoxGeometry(size, size, size);
+          } else if (geometryType === 1) {
+            geometry = new THREE.SphereGeometry(size, 32, 16);
+          } else {
+            geometry = new THREE.TorusGeometry(size * 0.5, size * 0.2, 16, 100);
+          }
+
+          makeTexturedInstance(geometry, material, x, y, z);
+        }
+
+        function makeInstance(geometry, color, x) {
+          const material = new THREE.MeshPhongMaterial({ color });
+          const cube = new THREE.Mesh(geometry, material);
+          scene.add(cube);
+          cubes.push(cube);
+          cube.position.x = x;
+          return cube;
+        }
+
+        function makeTexturedInstance(geometry, material, x, y = 0, z = 0) {
+          const mesh = new THREE.Mesh(geometry, material);
+          scene.add(mesh);
+          cubes.push(mesh);
+          mesh.position.set(x, y, z);
+        }
+
+        function makeLabelCanvas(baseWidth, size, name) {
+          const borderSize = 2;
+          const ctx = document.createElement('canvas').getContext('2d');
+          const font = `${size}px bold sans-serif`;
+          ctx.font = font;
+          const textWidth = ctx.measureText(name).width;
+          const doubleBorderSize = borderSize * 2;
+          const width = baseWidth + doubleBorderSize;
+          const height = size + doubleBorderSize;
+          ctx.canvas.width = width;
+          ctx.canvas.height = height;
+          ctx.font = font;
+          ctx.textBaseline = 'middle';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'black';
+          ctx.fillRect(0, 0, width, height);
+          const scaleFactor = Math.min(1, baseWidth / textWidth);
+          ctx.translate(width / 2, height / 2);
+          ctx.scale(scaleFactor, 1);
+          ctx.fillStyle = 'white';
+          ctx.fillText(name, 0, 0);
+          return ctx.canvas;
+        }
+
+        function makeLabel(x, labelWidth, size, name, color) {
+          const canvas = makeLabelCanvas(labelWidth, size, name);
+          const texture = new THREE.CanvasTexture(canvas);
+          texture.minFilter = THREE.LinearFilter;
+          texture.wrapS = THREE.ClampToEdgeWrapping;
+          texture.wrapT = THREE.ClampToEdgeWrapping;
+          const labelMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+          });
+          const bodyMaterial = new THREE.MeshPhongMaterial({
+            color,
+            flatShading: true,
+          });
+          const root = new THREE.Object3D();
+          root.position.x = 0;
+          const label = new THREE.Sprite(labelMaterial);
+          root.add(label);
+          label.position.y = -1.00;
+          label.position.z = 1.75;
+          const labelBaseScale = 0.01;
+          label.scale.x = canvas.width * labelBaseScale;
+          label.scale.y = canvas.height * labelBaseScale;
+          scene.add(root);
+          return root;
+        }
+
+        makeLabel(-3, 500, 32, 'FEAR MAGNETO', 'black');
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = false;
+        controls.maxPolarAngle = Math.PI / 2;
+
+        function render(time) {
+          time *= 0.001;
+
+          cubes.forEach((cube, ndx) => {
+            const speed = 0.2 + ndx * 0.1;
+            const rot = time * speed;
+            cube.rotation.x = rot;
+            cube.rotation.y = rot;
+          });
+
+          controls.update();
+
+          renderer.render(scene, camera);
+          requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
+      }
+
+      main();
+    </script>
+  </body>
+</html>
